@@ -7,14 +7,13 @@ class MoveNotesController{
 
         try {
           // Create Move Notes
-          const note_id = await knex("Movie_Notes")
+          const [note_id] = await knex("Movie_Notes")
             .insert({
                 title,
                 description,
                 raiting,
-            })
-            .then(() => knex("Movie_Notes").select("id").orderBy("id", "desc").first()) 
-            .then(note => note.id);
+                user_id: id
+            }).returning("id");           
 
           if (!note_id) {
                 return response.status(500).json({ error: "Failed to create note "});
@@ -41,7 +40,7 @@ class MoveNotesController{
       console.log("Id recebido", id);
 
       const note = await knex("Movie_Notes").where({id}).first();
-      const tags = await knex("tags").where({note_id: id}).orderBy("name");
+      const tags = await knex("movie_tags").where({note_id: id}).orderBy("name");
       return response.json({
         ...note,
         tags
@@ -55,14 +54,45 @@ class MoveNotesController{
       return response.json();
     }
 
-    async index(request, respose){
+    async index(request, response){
       const {id, title, tags} = request.query;
 
       let notes;
 
       if(tags){
-        
-      }
-    }
+        const filterTags = tags.split(',').map(tag => tag.trim());
+        console.log(filterTags);
 
+        notes = await knex("tags")
+          .select([
+            "Movie_Notes.id",
+            "Movie_Notes.title",
+            "Movie_Notes.user_id"
+          ])
+          .where("Movie_Notes.user_id", id)
+          .whereLike("Movie_Notes.title", `%${title}%`)
+          .whereIn("movie_tags.name", filterTags)
+          .innerJoin("Movie_Notes", "Movie_Notes.id", "movie_tags.note_id")
+          .orderBy("Movie_Notes.title")
+      } else {
+        notes = await knex("Movie_Notes")
+          .where({id})
+          .whereLike("title", `%${title}%`)
+          .orderBy("title");
+      }
+
+      const userTags = await knex("movie_tags").where({user_id: id});
+      const notesWithTags = notes.map(note => {
+        const noteTags = userTags.filter(tag => tag.note_id === note.id)
+
+        return {
+          ...note,
+          tags: noteTags
+        }
+      });
+
+      return response.json({ notesWithTags })
+    }
 }
+
+module.exports = MoveNotesController;
