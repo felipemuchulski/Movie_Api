@@ -3,6 +3,9 @@ const express = require('express');
 const AppError = require('./utils/AppError');
 const app = express();
 const connectionSqlServer = require("../src/database/sqlserver/index")
+const routes = require("./routes");
+
+app.use(routes);
 
 connectionSqlServer();
 
