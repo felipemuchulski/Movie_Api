@@ -26,7 +26,7 @@ class UsersControllers {
     .input("name", name)
     .input("email", email)
     .input("password", hashedPassword)
-    .query("INSERT INTO users (nome, email, senha) VALUES (@name, @email, @password)");
+    .query("INSERT INTO users (name, email, password) VALUES (@name, @email, @password)");
 
     // Response create
     return response.status(201).json({message: "Registered User"})    
