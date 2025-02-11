@@ -3,13 +3,12 @@ const express = require('express');
 const AppError = require('./utils/AppError');
 const app = express();
 const connectionSqlServer = require("../src/database/sqlserver/index")
-const routes = require("./routes");
-
+const routes = require("./routes/index");
+app.use(express.json());
 app.use(routes);
 
 connectionSqlServer();
 
-app.use(express.json());
 app.use((error, request, response, next) => {
     if(error instanceof AppError){
         return response.status(error.statusCode).json({
