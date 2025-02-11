@@ -2,18 +2,20 @@ const knex = require("../database/knex/knex");
 
 class MoveNotesController{
     async create(request, response){
-        const {title, description, raiting, tags } = request.body;
+        const {title, description, raiting, user_id, tags } = request.body;
         const { id } = request.params;
 
         try {
           // Create Move Notes
-          const [note_id] = await knex("Movie_Notes")
+          const [note] = await knex("Movie_Notes")
             .insert({
                 title,
                 description,
                 raiting,
-                user_id: id
+                user_id
             }).returning("id");           
+          
+          const note_id = note.id
 
           if (!note_id) {
                 return response.status(500).json({ error: "Failed to create note "});
@@ -22,7 +24,7 @@ class MoveNotesController{
           // Insert move_tag
           const tagsInsert = tags.map(name => ({
               note_id,
-              id,
+              user_id,
               name
           }));
           await knex("movie_tags").insert(tagsInsert);
