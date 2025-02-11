@@ -11,5 +11,3 @@ exports.up = knex => knex.schema.createTable("Movie_Notes", table => {
 });
 
 exports.down = knex => knex.schema.dropTable("Movie_Notes");
-  
-
