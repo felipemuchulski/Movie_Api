@@ -30,7 +30,9 @@ A API utiliza o SQL Server como banco de dados, com a configuração definida em
 - `/tags` : Listar tags associadas a um usuário.
 
 ## Segue estrutura das tabelas:
-(image.png)
+
+![Descrição da Imagem](image.png)
+
 ## Observação
 - As credenciais do banco de dados estão definidas diretamente no código e devem ser protegidas em ambiente de produção.
 
