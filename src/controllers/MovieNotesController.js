@@ -56,45 +56,46 @@ class MoveNotesController{
       return response.json();
     }
 
-    async index(request, response){
-      const {id, title, tags} = request.query;
-
-      let notes;
-
-      if(tags){
-        const filterTags = tags.split(',').map(tag => tag.trim());
-        console.log(filterTags);
-
-        notes = await knex("tags")
-          .select([
-            "Movie_Notes.id",
-            "Movie_Notes.title",
-            "Movie_Notes.user_id"
-          ])
-          .where("Movie_Notes.user_id", id)
-          .whereLike("Movie_Notes.title", `%${title}%`)
-          .whereIn("movie_tags.name", filterTags)
-          .innerJoin("Movie_Notes", "Movie_Notes.id", "movie_tags.note_id")
-          .orderBy("Movie_Notes.title")
-      } else {
-        notes = await knex("Movie_Notes")
-          .where({id})
-          .whereLike("title", `%${title}%`)
-          .orderBy("title");
+    async index(request, response) {
+      const { id, title, tags } = request.query;
+  
+      if (!id || !title) {
+          return response.status(400).json({ error: "Parâmetros inválidos" });
       }
-
-      const userTags = await knex("movie_tags").where({user_id: id});
+  
+      let notes;
+  
+      if (tags) {
+          const filterTags = tags.split(',').map(tag => tag.trim());
+  
+          notes = await knex("movie_tags")
+              .select([
+                  "movie_notes.id",
+                  "movie_notes.title",
+                  "movie_notes.user_id"
+              ])
+              .where("movie_notes.user_id", id)
+              .whereLike("movie_notes.title", `%${title}%`)
+              .whereIn("movie_tags.name", filterTags)
+              .innerJoin("movie_notes", "movie_notes.id", "movie_tags.note_id")
+              .orderBy("movie_notes.title");
+      } else {
+          notes = await knex("movie_notes")
+              .where({ user_id: id })
+              .whereLike("title", `%${title}%`)
+              .orderBy("title");
+      }
+  
+      const userTags = await knex("movie_tags").where({ user_id: id });
+  
       const notesWithTags = notes.map(note => {
-        const noteTags = userTags.filter(tag => tag.note_id === note.id)
-
-        return {
-          ...note,
-          tags: noteTags
-        }
+          const noteTags = userTags.filter(tag => tag.note_id === note.id);
+          return { ...note, tags: noteTags };
       });
-
-      return response.json({ notesWithTags })
-    }
+  
+      return response.json({ notesWithTags });
+  }
+  
 }
 
 module.exports = MoveNotesController;
